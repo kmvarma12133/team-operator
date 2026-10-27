@@ -1,0 +1,20 @@
+version: "2"
+linters:
+  enable:
+    - errorlint
+    - gocritic
+    - misspell
+    - revive
+    - unparam
+  settings:
+    revive:
+      rules:
+        - name: exported
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/kmvarma12133/team-operator

@@ -1,0 +1,33 @@
+image:
+  repository: ghcr.io/kmvarma12133/team-operator
+  # Defaults to the chart's appVersion. Set a digest to pin the exact signed image.
+  tag: ""
+  digest: ""
+  pullPolicy: IfNotPresent
+
+# Two replicas with leader election: one reconciles, the other takes over fast.
+replicas: 2
+leaderElect: true
+
+# The ownership label the platform's Gatekeeper policy requires on workloads.
+owner: platform
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+metrics:
+  # HTTPS on :8443; scrapers need a token allowed to get /metrics.
+  enabled: true
+  serviceMonitor:
+    enabled: false
+
+logLevel: info
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

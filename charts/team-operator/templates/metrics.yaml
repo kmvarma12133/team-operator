@@ -1,0 +1,38 @@
+{{- if .Values.metrics.enabled }}
+{{- $name := include "team-operator.fullname" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "team-operator.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "team-operator.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: https
+      port: 8443
+      targetPort: metrics
+{{- if .Values.metrics.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "team-operator.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "team-operator.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: https
+      scheme: https
+      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      tlsConfig:
+        # The endpoint serves a self-signed certificate.
+        insecureSkipVerify: true
+{{- end }}
+{{- end }}

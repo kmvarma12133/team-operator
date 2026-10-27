@@ -1,0 +1,9 @@
+apiVersion: v2
+name: team-operator
+description: Self-service team namespaces with quotas, container defaults, default-deny networking and member RBAC.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/kmvarma12133/team-operator
+sources:
+  - https://github.com/kmvarma12133/team-operator

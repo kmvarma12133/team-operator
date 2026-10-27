@@ -1,0 +1,73 @@
+name: demo
+
+# Builds the operator, installs it on a kind cluster on a GitHub runner, and
+# records hack/demo.sh with asciinema, rendered to a GIF with agg. Manual only;
+# the GIF is uploaded as an artifact.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: demo
+  cancel-in-progress: true
+
+jobs:
+  record:
+    name: kind demo, recorded
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      IMG: team-operator:demo
+      KIND_VERSION: v0.33.0
+      KIND_SHA256: aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d
+      HELM_VERSION: v4.3.1
+      HELM_SHA256: 0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b
+      AGG_VERSION: v1.9.0
+      AGG_SHA256: f111e315cd71056b116302342553dd765b7297579ed511f111d0cedb442aeda6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install kind, helm, asciinema and agg
+        run: |
+          curl -fsSLo kind "https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-linux-amd64"
+          echo "${KIND_SHA256}  kind" | sha256sum --check
+          sudo install kind /usr/local/bin/kind
+          curl -fsSLo helm.tgz "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz"
+          echo "${HELM_SHA256}  helm.tgz" | sha256sum --check
+          tar -xzf helm.tgz linux-amd64/helm && sudo install linux-amd64/helm /usr/local/bin/helm
+          curl -fsSLo agg "https://github.com/asciinema/agg/releases/download/${AGG_VERSION}/agg-x86_64-unknown-linux-gnu"
+          echo "${AGG_SHA256}  agg" | sha256sum --check
+          sudo install agg /usr/local/bin/agg
+          sudo apt-get update -q
+          sudo apt-get install -y -q asciinema
+      - name: Build, create the cluster and install the chart
+        run: |
+          docker build -t "$IMG" .
+          kind create cluster --wait 2m
+          kind load docker-image "$IMG"
+          helm install team-operator charts/team-operator \
+            --namespace team-operator-system --create-namespace \
+            --set image.repository=team-operator --set image.tag=demo --set image.pullPolicy=Never \
+            --wait --timeout 3m
+      - name: Record hack/demo.sh
+        run: |
+          asciinema rec --quiet --overwrite --idle-time-limit 2 --cols 110 --rows 32 \
+            --command "bash hack/demo.sh" demo.cast
+          # asciinema does not pass the command's exit code through.
+          grep -q "NamespaceConflict" demo.cast || {
+            echo "::error::the demo did not reach the namespace conflict step"
+            exit 1
+          }
+          agg --speed 1.5 --font-size 16 demo.cast demo.gif
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: demo
+          path: |
+            demo.cast
+            demo.gif
+          if-no-files-found: ignore

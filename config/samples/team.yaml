@@ -1,0 +1,17 @@
+apiVersion: tenancy.kmvarma12133.github.io/v1alpha1
+kind: Team
+metadata:
+  name: payments
+spec:
+  members:
+    - kind: Group
+      name: payments-devs
+    # No namespace: the service account lives in the team's own namespace.
+    - kind: ServiceAccount
+      name: deployer
+  costCenter: cc-1042
+  quota:
+    cpu: "8"
+    memory: 16Gi
+    pods: 40
+  # containerDefaults and deletionPolicy (Retain) use their defaults.
