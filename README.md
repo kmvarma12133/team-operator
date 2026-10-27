@@ -3,6 +3,13 @@
 A Kubernetes operator, written in Go with controller-runtime, that turns one
 small `Team` resource into a namespace a team can use safely on day one.
 
+[![ci](https://github.com/kmvarma12133/team-operator/actions/workflows/ci.yml/badge.svg)](https://github.com/kmvarma12133/team-operator/actions/workflows/ci.yml)
+
+![A Team becomes a guarded namespace, a hand-edited quota is reverted, and a namespace the operator did not create is left alone](docs/demo.gif)
+
+*Recorded on a kind cluster in GitHub Actions by the
+[`demo` workflow](.github/workflows/demo.yml), running [`hack/demo.sh`](hack/demo.sh).*
+
 ```yaml
 apiVersion: tenancy.kmvarma12133.github.io/v1alpha1
 kind: Team
