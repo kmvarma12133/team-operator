@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -297,10 +298,15 @@ func TestReadoptsRetainedNamespace(t *testing.T) {
 		t.Fatal(err)
 	}
 	eventually(t, "Team deleted", func() error {
-		if err := get("analytics", "", &tenancyv1alpha1.Team{}); !apierrors.IsNotFound(err) {
-			return fmt.Errorf("still present: %v", err)
+		err := get("analytics", "", &tenancyv1alpha1.Team{})
+		switch {
+		case apierrors.IsNotFound(err):
+			return nil
+		case err != nil:
+			return err
+		default:
+			return errors.New("Team still present")
 		}
-		return nil
 	})
 	if err := get(NamespaceFor("analytics"), "", &corev1.Namespace{}); err != nil {
 		t.Fatalf("retained namespace: %v", err)

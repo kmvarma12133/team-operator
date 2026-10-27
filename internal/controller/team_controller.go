@@ -38,11 +38,15 @@ const (
 	// LabelTeam marks every object the operator manages with the Team it belongs to.
 	LabelTeam = "tenancy.kmvarma12133.github.io/team"
 	// LabelOwner is the ownership label the platform's Gatekeeper policy requires.
-	LabelOwner     = "owner"
-	LabelCostCtr   = "cost-center"
+	LabelOwner = "owner"
+	// LabelCostCtr carries spec.costCenter on the namespace.
+	LabelCostCtr = "cost-center"
+	// LabelManagedBy names the operator as the manager of an object.
 	LabelManagedBy = "app.kubernetes.io/managed-by"
+)
 
-	// Object names inside a team namespace.
+// Names of the objects inside a team namespace.
+const (
 	QuotaName          = "team-quota"
 	LimitRangeName     = "team-defaults"
 	DenyAllPolicyName  = "default-deny"

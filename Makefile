@@ -26,11 +26,11 @@ verify-generated: generate ## Fail if generated files are out of date
 
 .PHONY: envtest
 envtest: ## Download kube-apiserver and etcd for the integration tests
-	$(SETUP_ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir ./bin -p path
+	$(SETUP_ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(CURDIR)/bin -p path
 
 .PHONY: test
 test: envtest ## Run unit and envtest integration tests with coverage
-	KUBEBUILDER_ASSETS="$$($(SETUP_ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir ./bin -p path)" \
+	KUBEBUILDER_ASSETS="$$($(SETUP_ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(CURDIR)/bin -p path)" \
 		go test -race -coverprofile=cover.out ./...
 	go tool cover -func=cover.out | tail -1
 
