@@ -47,13 +47,15 @@ type TeamSpec struct {
 }
 
 // Quota becomes the namespace's ResourceQuota.
+// Quantities are pointers: a zero Quantity is not omitted from JSON, so a Go
+// client leaving one unset would send "0" and skip the CRD default.
 type Quota struct {
 	// +kubebuilder:default="4"
 	// +optional
-	CPU resource.Quantity `json:"cpu,omitempty"`
+	CPU *resource.Quantity `json:"cpu,omitempty"`
 	// +kubebuilder:default="8Gi"
 	// +optional
-	Memory resource.Quantity `json:"memory,omitempty"`
+	Memory *resource.Quantity `json:"memory,omitempty"`
 	// +kubebuilder:default=20
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=500
@@ -67,16 +69,16 @@ type Quota struct {
 type ContainerDefaults struct {
 	// +kubebuilder:default="100m"
 	// +optional
-	CPURequest resource.Quantity `json:"cpuRequest,omitempty"`
+	CPURequest *resource.Quantity `json:"cpuRequest,omitempty"`
 	// +kubebuilder:default="500m"
 	// +optional
-	CPULimit resource.Quantity `json:"cpuLimit,omitempty"`
+	CPULimit *resource.Quantity `json:"cpuLimit,omitempty"`
 	// +kubebuilder:default="128Mi"
 	// +optional
-	MemoryRequest resource.Quantity `json:"memoryRequest,omitempty"`
+	MemoryRequest *resource.Quantity `json:"memoryRequest,omitempty"`
 	// +kubebuilder:default="512Mi"
 	// +optional
-	MemoryLimit resource.Quantity `json:"memoryLimit,omitempty"`
+	MemoryLimit *resource.Quantity `json:"memoryLimit,omitempty"`
 }
 
 // TeamStatus reports the namespace the team got and whether it is ready.

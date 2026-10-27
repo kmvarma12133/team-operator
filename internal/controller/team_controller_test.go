@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	tenancyv1alpha1 "github.com/kmvarma12133/team-operator/api/v1alpha1"
@@ -320,8 +321,8 @@ func TestValidation(t *testing.T) {
 	tooLong := strings.Repeat("a", 59)
 	badDefaults := newTeam("bad-defaults")
 	badDefaults.Spec.ContainerDefaults = tenancyv1alpha1.ContainerDefaults{
-		CPURequest: resource.MustParse("2"),
-		CPULimit:   resource.MustParse("1"),
+		CPURequest: ptr.To(resource.MustParse("2")),
+		CPULimit:   ptr.To(resource.MustParse("1")),
 	}
 	badPolicy := newTeam("bad-policy")
 	badPolicy.Spec.DeletionPolicy = "Orphan"

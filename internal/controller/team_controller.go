@@ -161,16 +161,22 @@ func (r *TeamReconciler) apply(ctx context.Context, team *tenancyv1alpha1.Team, 
 		{"ResourceQuota", corev1ac.ResourceQuota(QuotaName, nsName).
 			WithLabels(labels).
 			WithSpec(corev1ac.ResourceQuotaSpec().WithHard(corev1.ResourceList{
-				corev1.ResourceRequestsCPU:    q.CPU,
-				corev1.ResourceRequestsMemory: q.Memory,
-				corev1.ResourcePods:           *resource.NewQuantity(int64(q.Pods), resource.DecimalSI),
+				corev1.ResourceRequestsCPU:    orDefault(q.CPU, "4"),
+				corev1.ResourceRequestsMemory: orDefault(q.Memory, "8Gi"),
+				corev1.ResourcePods:           *resource.NewQuantity(int64(podsOrDefault(q.Pods)), resource.DecimalSI),
 			}))},
 		{"LimitRange", corev1ac.LimitRange(LimitRangeName, nsName).
 			WithLabels(labels).
 			WithSpec(corev1ac.LimitRangeSpec().WithLimits(corev1ac.LimitRangeItem().
 				WithType(corev1.LimitTypeContainer).
-				WithDefaultRequest(corev1.ResourceList{corev1.ResourceCPU: cd.CPURequest, corev1.ResourceMemory: cd.MemoryRequest}).
-				WithDefault(corev1.ResourceList{corev1.ResourceCPU: cd.CPULimit, corev1.ResourceMemory: cd.MemoryLimit})))},
+				WithDefaultRequest(corev1.ResourceList{
+					corev1.ResourceCPU:    orDefault(cd.CPURequest, "100m"),
+					corev1.ResourceMemory: orDefault(cd.MemoryRequest, "128Mi"),
+				}).
+				WithDefault(corev1.ResourceList{
+					corev1.ResourceCPU:    orDefault(cd.CPULimit, "500m"),
+					corev1.ResourceMemory: orDefault(cd.MemoryLimit, "512Mi"),
+				})))},
 		{"NetworkPolicy", networkingv1ac.NetworkPolicy(DenyAllPolicyName, nsName).
 			WithLabels(labels).
 			WithSpec(networkingv1ac.NetworkPolicySpec().
@@ -243,6 +249,22 @@ func subjects(members []rbacv1.Subject, nsName string) []*rbacv1ac.SubjectApplyC
 		out = append(out, s)
 	}
 	return out
+}
+
+// orDefault and podsOrDefault repeat the CRD's defaults, which the API server
+// normally fills in, so a Team stored before a default existed still works.
+func orDefault(q *resource.Quantity, def string) resource.Quantity {
+	if q == nil {
+		return resource.MustParse(def)
+	}
+	return *q
+}
+
+func podsOrDefault(pods int32) int32 {
+	if pods == 0 {
+		return 20
+	}
+	return pods
 }
 
 func managedLabels(team string) map[string]string {
